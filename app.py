@@ -4,6 +4,8 @@ import joblib
 import json
 import os
 from sklearn.preprocessing import StandardScaler
+import zipfile
+import tempfile
 
 # Function to load the pre-trained model and scaler
 def load_model(model_path):
@@ -27,30 +29,37 @@ def make_prediction(model, scaler, input_data):
 st.title("Stock Change Prediction Application")
 
 # Allow user to upload the folder containing the pre-trained model
-results_folder = st.file_uploader("Upload the Results Folder", type=["zip"])
+results_folder = st.file_uploader("Upload the Results Folder (ZIP)", type=["zip"])
 
 if results_folder is not None:
     # Unzip the folder (assuming the user uploads a .zip file)
-    import zipfile
-    import tempfile
-
-    # Create a temporary directory to extract the uploaded zip file
     with tempfile.TemporaryDirectory() as tempdir:
         with zipfile.ZipFile(results_folder, 'r') as zip_ref:
             zip_ref.extractall(tempdir)
-
-        # Load the model and metadata from the extracted folder
-        model_filename = os.path.join(tempdir, "stock_name_xgb_model.pkl")  # Replace with actual model filename
-        metadata_filename = os.path.join(tempdir, "stock_name_model_metadata.json")  # Replace with actual metadata filename
-
-        if os.path.exists(model_filename) and os.path.exists(metadata_filename):
-            model = load_model(model_filename)
-            metadata = load_metadata(metadata_filename)
             
-            st.success("Model and metadata loaded successfully.")
-        else:
-            st.error("Model or metadata files not found in the uploaded folder.")
-            st.stop()
+            # List the extracted files for debugging
+            extracted_files = os.listdir(tempdir)
+            st.write(f"Files extracted: {extracted_files}")
+
+            # Check if the model and metadata files exist
+            model_filename = None
+            metadata_filename = None
+
+            # Search for the model and metadata files (pkl and json)
+            for file in extracted_files:
+                if file.endswith(".pkl"):
+                    model_filename = os.path.join(tempdir, file)
+                if file.endswith(".json"):
+                    metadata_filename = os.path.join(tempdir, file)
+
+            if model_filename and metadata_filename:
+                model = load_model(model_filename)
+                metadata = load_metadata(metadata_filename)
+                st.success("Model and metadata loaded successfully.")
+            else:
+                st.error("Model or metadata files not found in the uploaded folder.")
+                st.write("Please ensure the ZIP folder contains the model (.pkl) and metadata (.json) files.")
+                st.stop()
 
 # Inputs for the user to provide the upcoming values
 st.header("Input Upcoming Values")
