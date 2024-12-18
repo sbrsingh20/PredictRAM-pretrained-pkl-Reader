@@ -47,10 +47,13 @@ if results_folder is not None:
 
             # Search for the model and metadata files (pkl and json)
             for file in extracted_files:
+                st.write(f"Checking file: {file}")
                 if file.endswith(".pkl"):
                     model_filename = os.path.join(tempdir, file)
+                    st.write(f"Found model: {model_filename}")
                 if file.endswith(".json"):
                     metadata_filename = os.path.join(tempdir, file)
+                    st.write(f"Found metadata: {metadata_filename}")
 
             if model_filename and metadata_filename:
                 model = load_model(model_filename)
