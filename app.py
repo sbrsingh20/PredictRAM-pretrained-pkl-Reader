@@ -63,12 +63,16 @@ vix_value = st.number_input("Enter the upcoming VIX value:", min_value=0.0, max_
 # Prepare the input data for prediction
 input_data = [gdp_value, inflation_value, interest_rate_value, vix_value]
 
-# Load the scaler used during training (from metadata)
-scaler = StandardScaler()
-scaler_mean = metadata["scaler"]["mean"]
-scaler_std = metadata["scaler"]["std"]
-scaler.mean_ = scaler_mean
-scaler.scale_ = scaler_std
+# Load the scaler used during training
+# Check if scaler parameters are available in the metadata
+if 'scaler' in metadata and 'mean' in metadata['scaler'] and 'std' in metadata['scaler']:
+    # If the metadata contains scaler info, initialize with those values
+    scaler = StandardScaler()
+    scaler.mean_ = np.array(metadata["scaler"]["mean"])
+    scaler.scale_ = np.array(metadata["scaler"]["std"])
+else:
+    # If no scaler info in metadata, initialize a new scaler (default behavior)
+    scaler = StandardScaler()
 
 # Make prediction when the button is pressed
 if st.button("Predict Stock Change"):
